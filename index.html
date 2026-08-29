@@ -3,34 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador de Nodos y Mapa KML</title>
-    <!-- Estilos de Leaflet para el mapa -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <!-- Tus estilos personalizados -->
+    <title>Buscador de Nodos KML</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <div class="app-container">
-        <!-- Panel Lateral: Buscador y Detalles -->
-        <div class="sidebar">
-            <h2>Buscador de Nodos</h2>
+        <div class="search-card">
+            <h2>Buscador de Nodos y Zonas</h2>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Escribe el nodo o zona..." autocomplete="off">
+                <input type="text" id="searchInput" placeholder="Escribe el nombre del nodo o zona..." autocomplete="off">
                 <ul id="resultsList"></ul>
             </div>
             <div id="nodeInfo" class="node-info">
-                <p>Selecciona un nodo del buscador o haz clic en un marcador del mapa para ver los detalles.</p>
+                <p>Escribe al menos 2 letras en el buscador para encontrar un nodo y ver sus detalles.</p>
             </div>
         </div>
-
-        <!-- Contenedor del Mapa -->
-        <div id="map"></div>
     </div>
 
-    <!-- Script de Leaflet -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- Tu script personalizado -->
     <script src="script.js"></script>
 </body>
 </html>
