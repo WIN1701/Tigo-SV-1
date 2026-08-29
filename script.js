@@ -1,7 +1,7 @@
 // Clave de acceso requerida
 const PASSWORD_CORRECTO = "1";
 
-// Base de datos de nodos
+// Base de datos de cobertura y nodos
 const coberturaData = [
     {
         id: 1,
@@ -64,13 +64,12 @@ const categoryButtons = document.querySelectorAll('.filter-btn');
 
 let categoriaSeleccionada = 'todas';
 
-// Función para validar la contraseña de acceso
+// Validar contraseña de acceso
 function validarAcceso(event) {
     event.preventDefault();
     const passwordIngresado = passwordInput.value.trim();
 
     if (passwordIngresado === PASSWORD_CORRECTO) {
-        // Ocultar pantalla de bienvenida y mostrar la aplicación
         loginOverlay.style.display = 'none';
         appContent.classList.remove('hidden');
         renderCards(coberturaData);
@@ -120,10 +119,7 @@ function renderCards(lista) {
 
             <div class="card-actions">
                 <button class="btn-copy" onclick="copiarOferta(\`${promoText.replace(/\n/g, '\\n')}\`, this)">
-                    📋 Copiar
-                </button>
-                <button class="btn-whatsapp" onclick="enviarWhatsApp(\`${promoText.replace(/\n/g, '\\n')}\`)">
-                    💬 WhatsApp
+                    📋 Copiar Oferta
                 </button>
             </div>
         `;
@@ -132,7 +128,7 @@ function renderCards(lista) {
     });
 }
 
-// Filtrar por búsqueda y categorías
+// Filtrar por texto y botones de categoría
 function filterData() {
     const query = searchInput.value.toLowerCase().trim();
     const terms = query.split(' ').filter(t => t.length > 0);
@@ -169,12 +165,6 @@ function copiarOferta(texto, boton) {
             boton.classList.remove('copied');
         }, 2000);
     });
-}
-
-function enviarWhatsApp(texto) {
-    const textoCodificado = encodeURIComponent(texto);
-    const url = `https://api.whatsapp.com/send?text=${textoCodificado}`;
-    window.open(url, '_blank');
 }
 
 searchInput.addEventListener('input', filterData);
