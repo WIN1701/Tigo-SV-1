@@ -264,12 +264,11 @@ body {
 
 .card-actions {
     display: flex;
-    gap: 0.5rem;
     margin-top: 1rem;
 }
 
 .btn-copy {
-    flex: 1;
+    width: 100%;
     background-color: #F1F5F9;
     color: var(--primary-blue);
     border: 1px solid #CBD5E1;
@@ -288,20 +287,4 @@ body {
 .btn-copy.copied {
     background-color: var(--success-green);
     color: white;
-}
-
-.btn-whatsapp {
-    flex: 1.2;
-    background-color: #25D366;
-    color: white;
-    border: none;
-    padding: 0.75rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-whatsapp:hover {
-    background-color: #128C7E;
 }
