@@ -3,51 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Nodos y Ofertas - Tigo Ejecutivo</title>
+    <title>Buscador de Nodos y Mapa KML</title>
+    <!-- Estilos de Leaflet para el mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Tus estilos personalizados -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <!-- Pantalla de Bienvenida y Seguridad -->
-    <div id="loginOverlay" class="login-overlay">
-        <div class="login-card">
-            <div class="login-header">
-                <h2>Bienvenido a tu Buscador Tigo Ejecutivo</h2>
-                <p>Ingresa la contraseña para acceder</p>
-            </div>
-            <form id="loginForm" onsubmit="validarAcceso(event)">
-                <input type="password" id="passwordInput" placeholder="Ingresa el password..." required autocomplete="off">
-                <button type="submit" class="btn-login">Ingresar</button>
-            </form>
-            <p id="errorMessage" class="error-msg"></p>
-        </div>
-    </div>
-
-    <!-- Contenido Principal (Oculto hasta iniciar sesión) -->
-    <div id="appContent" class="app-content hidden">
-        <header class="header">
-            <h1>Consulta de Nodos y Cobertura</h1>
-            <p>Busca por municipio, urbanización, pasaje o número de nodo</p>
-        </header>
-
-        <main class="container">
+    <div class="app-container">
+        <!-- Panel Lateral: Buscador y Detalles -->
+        <div class="sidebar">
+            <h2>Buscador de Nodos</h2>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Ej: Ilopango Selt-Sut ILO8...">
+                <input type="text" id="searchInput" placeholder="Escribe el nodo o zona..." autocomplete="off">
+                <ul id="resultsList"></ul>
             </div>
-
-            <div class="category-filters" id="categoryFilters">
-                <button class="filter-btn active" data-category="todas">Todas</button>
-                <button class="filter-btn" data-category="Focalizada">Focalizada</button>
-                <button class="filter-btn" data-category="Cablera Oriente">Cablera Oriente</button>
-                <button class="filter-btn" data-category="Nacional">Nacional / Estándar</button>
+            <div id="nodeInfo" class="node-info">
+                <p>Selecciona un nodo del buscador o haz clic en un marcador del mapa para ver los detalles.</p>
             </div>
+        </div>
 
-            <section class="cards-grid" id="resultsContainer">
-                <!-- Contenido dinámico -->
-            </section>
-        </main>
+        <!-- Contenedor del Mapa -->
+        <div id="map"></div>
     </div>
 
+    <!-- Script de Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Tu script personalizado -->
     <script src="script.js"></script>
 </body>
 </html>
