@@ -128,7 +128,7 @@ function renderCards(lista) {
     });
 }
 
-// Filtrar por texto y botones de categoría
+// Filtrar por búsqueda de texto y categorías
 function filterData() {
     const query = searchInput.value.toLowerCase().trim();
     const terms = query.split(' ').filter(t => t.length > 0);
