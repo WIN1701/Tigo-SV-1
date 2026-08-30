@@ -11,13 +11,21 @@
     <!-- CONTENEDOR DE LOGIN -->
     <div id="loginContainer" class="container">
         <div class="card" style="margin: 0;">
-            <div class="tigo-logo-text">tigo<span>.</span></div>
+            <!-- LOGO OFICIAL TIGO CIRCULAR SVG -->
+            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                <svg viewBox="0 0 100 100" width="70" height="70" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="50" fill="#00377B"/>
+                    <text x="50" y="63" font-family="Arial, sans-serif" font-weight="900" font-size="44" fill="#FFFFFF" text-anchor="middle" letter-spacing="-2">tiĝô</text>
+                    <path d="M 57 74 C 65 83 74 83 81 74" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                </svg>
+            </div>
+            
             <h2 class="card-title" style="text-align: center;">Activator Home</h2>
             <p class="welcome-subtitle" style="text-align: center;">Hola Ejecutiv@ de TIGO SV</p>
             
             <div class="form-group">
                 <label>Usuario</label>
-                <input type="text" id="userInput" placeholder="Ej. 1 o Edwin">
+                <input type="text" id="userInput" placeholder="Ingrese su usuario">
             </div>
             
             <div class="form-group">
@@ -35,7 +43,13 @@
         
         <!-- BARRA DE NAVEGACIÓN SUPERIOR CON MENÚ DESPLEGABLE -->
         <header class="navbar">
-            <div class="nav-brand" onclick="mostrarPantallaBusqueda()">tigo<span>.</span></div>
+            <div class="nav-brand" onclick="mostrarPantallaBusqueda()">
+                <svg viewBox="0 0 100 100" width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="50" fill="#00377B"/>
+                    <text x="50" y="63" font-family="Arial, sans-serif" font-weight="900" font-size="44" fill="#FFFFFF" text-anchor="middle" letter-spacing="-2">tiĝô</text>
+                    <path d="M 57 74 C 65 83 74 83 81 74" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                </svg>
+            </div>
             <div class="user-menu-container">
                 <button class="user-menu-btn" onclick="toggleMenuDropdown()">
                     👤 <span id="nombreUsuarioDisplay">Usuario</span> ▼
@@ -144,8 +158,8 @@
 
     <script>
         const usuariosRegistrados = {
-            "1": {
-                password: "0.1",
+            "17": {
+                password: "WIN",
                 nombre: "Edwin Hernández"
             },
             "2": {
@@ -168,9 +182,9 @@
             },
             {
                 departamento: "san salvador",
-                municipio: "ilopango",
-                colonia: "jardines de selt-sut",
-                nodo: "ILO7",
+                municipio: "soyapango",
+                colonia: "reparto san fernando",
+                nodo: "S6",
                 categoria: "CABLERA ORIENTE",
                 tipoServicio: "Internet + TV Digital",
                 promocion: "150MB + TV DIGITAL + PLAN MOVIL CORTESIA",
@@ -179,9 +193,9 @@
             },
             {
                 departamento: "san salvador",
-                municipio: "ilopango",
-                colonia: "jardines de selt-sut",
-                nodo: "ILO7",
+                municipio: "soyapango",
+                colonia: "centro de soyapango",
+                nodo: "S65",
                 categoria: "CABLERA ORIENTE",
                 tipoServicio: "Solo Internet",
                 promocion: "150MB SOLO INTERNET",
@@ -190,9 +204,9 @@
             },
             {
                 departamento: "san salvador",
-                municipio: "ilopango",
-                colonia: "san bartolo",
-                nodo: "ILO2",
+                municipio: "nejapa",
+                colonia: "Barrio concepcion",
+                nodo: "NJ1",
                 categoria: "REGULAR",
                 tipoServicio: "Solo Internet",
                 promocion: "100MB Fibra Óptica",
@@ -200,26 +214,47 @@
                 instalacion: "Gratis"
             },
             {
-                departamento: "san miguel",
-                municipio: "san miguel",
-                colonia: "el centro",
-                nodo: "SMI1",
-                categoria: "CABLERA ORIENTE TELEMAS",
-                tipoServicio: "Internet + TV Digital",
-                promocion: "200MB + TV Digital Telemas",
-                precio: "$35.00",
-                instalacion: "$10.00"
+                departamento: "san salvador",
+                municipio: "san salvador",
+                colonia: "barrio concepcion",
+                nodo: "CENE1",
+                categoria: "DTH",
+                tipoServicio: "Solo Cable",
+                promocion: "TV satelital",
+                precio: "$14.99",
+                instalacion: "$20.00"
             },
             {
-                departamento: "san miguel",
-                municipio: "san miguel",
-                colonia: "el centro",
-                nodo: "SMI2",
-                categoria: "CABLERA ORIENTE TELEMAS",
-                tipoServicio: "Solo Cable",
+                departamento: "santa ana ",
+                municipio: "coatepeque",
+                colonia: "colonia el milagro",
+                nodo: "COA01-FDH04",
+                categoria: "FTTH",
+                tipoServicio: "Internet + TV Digital",
                 promocion: "TV Avanzada Telemas",
                 precio: "$19.99",
                 instalacion: "$5.00"
+            },
+            {
+                departamento: "la libertad",
+                municipio: "la libertad",
+                colonia: "tepeagua",
+                nodo: "CELI1",
+                categoria: "DTH",
+                tipoServicio: "Solo Cable",
+                promocion: "TV SATELITAL",
+                precio: "$14.99",
+                instalacion: "$20.00"
+            },{
+                departamento: "san salvador",
+                municipio: "san marcos",
+                colonia: "planes de renderos",
+                nodo: "C47",
+                categoria: "HFC",
+                tipoServicio: "Internet + TV Digital",
+                promocion: "TV SATELITAL",
+                precio: "$14.99",
+                instalacion: "$20.00"
             }
         ];
 
@@ -574,6 +609,9 @@
                 promocion: promocionSeleccionadaTemporal.promocion,
                 nodo: promocionSeleccionadaTemporal.nodo,
                 precio: promocionSeleccionadaTemporal.precio,
+                departamento: promocionSeleccionadaTemporal.departamento,
+                municipio: promocionSeleccionadaTemporal.municipio,
+                colonia: promocionSeleccionadaTemporal.colonia,
                 fecha: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
 
@@ -604,6 +642,7 @@
                             <span class="badge-categoria cat-focalizada">Cliente Guardado</span>
                             <span class="badge-tipo">📱 ${cli.celular}</span>
                             <h4>${cli.nombre} ${cli.apellido}</h4>
+                            <p><strong>Ubicación:</strong> ${cli.colonia ? cli.colonia.toUpperCase() : ''}, ${cli.municipio ? cli.municipio.toUpperCase() : ''}, ${cli.departamento ? cli.departamento.toUpperCase() : ''}</p>
                             <p><strong>Promoción:</strong> ${cli.promocion}</p>
                             <p><strong>Nodo:</strong> ${cli.nodo}</p>
                             <div class="price-box">
