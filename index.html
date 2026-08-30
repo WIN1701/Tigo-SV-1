@@ -156,6 +156,16 @@
         </div>
     </div>
 
+    <!-- MODAL PARA VER DETALLES DE LA PROMOCIÓN (PÁGINA AUXILIAR) -->
+    <div id="detallesPromoModal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 450px; text-align: left; position: relative; max-height: 90vh; overflow-y: auto;">
+            <button onclick="cerrarDetallesPromo()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); font-weight: bold;">&times;</button>
+            <div id="detallesPromoContenido">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
     <script>
         const usuariosRegistrados = {
             "17": {
@@ -551,7 +561,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <button class="tigo-btn" style="padding: 8px; font-size: 0.85rem; margin-top: 8px;" onclick="abrirModalCliente(${index})">Elegir Promoción</button>
+                            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                <button class="tigo-btn" style="flex: 1; padding: 8px; font-size: 0.85rem; background: #EBF3FF; color: var(--tigo-blue); box-shadow: none;" onclick="abrirDetallesPromo(${index})">Detalles</button>
+                                <button class="tigo-btn" style="flex: 1; padding: 8px; font-size: 0.85rem;" onclick="abrirModalCliente(${index})">Elegir Promoción</button>
+                            </div>
                         </div>
                     `;
                 });
@@ -565,6 +578,57 @@
                         ${htmlResultadosCards}
                     </div>
                 </div>`;
+        }
+
+        // GESTIÓN DE LA PÁGINA AUXILIAR / MODAL DE DETALLES
+        function abrirDetallesPromo(index) {
+            const promo = resultadosGlobales[index];
+            if (!promo) return;
+
+            const contenido = document.getElementById('detallesPromoContenido');
+            contenido.innerHTML = `
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">Paquete</div>
+                <h3 style="color: var(--tigo-blue); font-size: 1.5rem; margin: 0 0 4px 0; font-weight: 800;">${promo.promocion}</h3>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 16px;">${promo.precio} <span style="font-size: 0.85rem; font-weight: normal; color: var(--text-muted);">/ Mes</span></div>
+                
+                <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 12px;">
+                    <div style="font-weight: 700; color: var(--tigo-blue); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Tipo de Servicio</span>
+                        <span>▲</span>
+                    </div>
+                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-main);">✓ ${promo.tipoServicio}</p>
+                </div>
+
+                <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 12px;">
+                    <div style="font-weight: 700; color: var(--tigo-blue); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Información de Cobertura y Nodo</span>
+                        <span>▲</span>
+                    </div>
+                    <p style="margin: 0 0 4px 0; font-size: 0.9rem;"><strong>Nodo:</strong> ${promo.nodo}</p>
+                    <p style="margin: 0 0 4px 0; font-size: 0.9rem;"><strong>Categoría:</strong> ${promo.categoria}</p>
+                    <p style="margin: 0; font-size: 0.9rem;"><strong>Ubicación:</strong> ${promo.colonia.toUpperCase()}, ${promo.municipio.toUpperCase()}, ${promo.departamento.toUpperCase()}</p>
+                </div>
+
+                <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 16px;">
+                    <div style="font-weight: 700; color: var(--tigo-blue); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Costo de Instalación</span>
+                        <span>▲</span>
+                    </div>
+                    <p style="margin: 0; font-size: 0.9rem;">✓ Instalación: <strong>${promo.instalacion}</strong></p>
+                </div>
+
+                <div style="text-align: right; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
+                    Vigencia: 30 días
+                </div>
+
+                <button class="tigo-btn" style="width: 100%; padding: 10px;" onclick="cerrarDetallesPromo(); abrirModalCliente(${resultadosGlobales.indexOf(promo)});">Elegir esta Promoción</button>
+            `;
+
+            document.getElementById('detallesPromoModal').classList.add('show');
+        }
+
+        function cerrarDetallesPromo() {
+            document.getElementById('detallesPromoModal').classList.remove('show');
         }
 
         // GESTIÓN DEL MODAL Y FORMULARIO DE CLIENTE
@@ -630,37 +694,34 @@
             const container = document.getElementById('listaClientesAmpliaContainer');
 
             if (listaClientes.length === 0) {
-                container.innerHTML = `<p style="color: var(--text-muted); font-style: italic; grid-column: 1 / -1; text-align: center; padding: 20px;">No hay clientes registrados aún a través del formulario.</p>`;
+                container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; padding: 20px; grid-column: 1 / -1;">No hay clientes o promociones guardadas todavía.</p>`;
                 return;
             }
 
             let html = '';
-            listaClientes.forEach((cli) => {
+            listaClientes.forEach((cli, index) => {
                 html += `
-                    <div class="resultado-card">
-                        <div>
-                            <span class="badge-categoria cat-focalizada">Cliente Guardado</span>
-                            <span class="badge-tipo">📱 ${cli.celular}</span>
-                            <h4>${cli.nombre} ${cli.apellido}</h4>
-                            <p><strong>Ubicación:</strong> ${cli.colonia ? cli.colonia.toUpperCase() : ''}, ${cli.municipio ? cli.municipio.toUpperCase() : ''}, ${cli.departamento ? cli.departamento.toUpperCase() : ''}</p>
-                            <p><strong>Promoción:</strong> ${cli.promocion}</p>
-                            <p><strong>Nodo:</strong> ${cli.nodo}</p>
-                            <div class="price-box">
-                                <div class="price-item">
-                                    <span>Precio Acordado</span>
-                                    <strong>${cli.precio}</strong>
-                                </div>
-                                <div class="price-item" style="text-align: right;">
-                                    <span>Fecha Registro</span>
-                                    <strong style="font-size: 0.8rem;">${cli.fecha}</strong>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="resultado-card" style="text-align: left;">
+                        <span class="badge-categoria cat-focalizada">${cli.promocion}</span>
+                        <h4>${cli.nombre} ${cli.apellido}</h4>
+                        <p><strong>Celular:</strong> ${cli.celular}</p>
+                        <p><strong>Nodo:</strong> ${cli.nodo} (${cli.precio})</p>
+                        <p><strong>Ubicación:</strong> ${cli.colonia.toUpperCase()}, ${cli.municipio.toUpperCase()}</p>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Guardado: ${cli.fecha}</p>
+                        <button class="logout-btn" style="margin-top: 10px; width: 100%; padding: 6px;" onclick="eliminarClienteRegistrado(${index})">Eliminar Registro</button>
                     </div>
                 `;
             });
-
             container.innerHTML = html;
+        }
+
+        function eliminarClienteRegistrado(index) {
+            if (!usuarioActualId) return;
+            const claveStorage = `clientes_tigo_${usuarioActualId}`;
+            let listaClientes = JSON.parse(localStorage.getItem(claveStorage)) || [];
+            listaClientes.splice(index, 1);
+            localStorage.setItem(claveStorage, JSON.stringify(listaClientes));
+            renderizarListaClientesAmplia();
         }
     </script>
 </body>
