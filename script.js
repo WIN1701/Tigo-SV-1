@@ -110,6 +110,7 @@ let categoriaFiltroActiva = 'TODOS';
 let servicioFiltroActivo = 'TODOS';
 let usuarioActualId = null;
 let promocionSeleccionadaTemporal = null;
+let clientesCache = []; // Variable global temporal para guardar la lista de clientes cargados
 
 function verificarLogin() {
     const usuarioVal = document.getElementById('userInput').value.trim();
@@ -156,6 +157,7 @@ function cerrarSesion() {
     document.getElementById('historialContainer').innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; margin: 0;">No hay búsquedas recientes registradas.</p>`;
     document.getElementById('userDropdownMenu').classList.remove('show');
     resultadosGlobales = [];
+    clientesCache = [];
 }
 
 function toggleMenuDropdown() {
@@ -180,6 +182,8 @@ function irAPantallaClientes() {
     document.getElementById('userDropdownMenu').classList.remove('show');
     document.getElementById('seccionBusqueda').classList.add('hidden');
     document.getElementById('seccionClientes').classList.remove('hidden');
+    const inputFiltro = document.getElementById('busquedaClienteInput');
+    if (inputFiltro) inputFiltro.value = '';
     renderizarListaClientesAmplia();
 }
 
@@ -559,13 +563,22 @@ async function renderizarListaClientesAmplia() {
         listaClientes = JSON.parse(localStorage.getItem(claveStorage)) || [];
     }
 
-    if (listaClientes.length === 0) {
+    // Asignamos la lista a la caché global
+    clientesCache = listaClientes;
+
+    renderizarConArreglo(clientesCache);
+}
+
+function renderizarConArreglo(lista) {
+    const container = document.getElementById('listaClientesAmpliaContainer');
+
+    if (!lista || lista.length === 0) {
         container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; padding: 20px; grid-column: 1 / -1;">No hay clientes o promociones guardadas todavía.</p>`;
         return;
     }
 
     let html = '';
-    listaClientes.forEach((cli, index) => {
+    lista.forEach((cli, index) => {
         html += `
             <div class="resultado-card" style="text-align: left;">
                 <span class="badge-categoria cat-focalizada">${cli.promocion}</span>
@@ -579,6 +592,43 @@ async function renderizarListaClientesAmplia() {
         `;
     });
     container.innerHTML = html;
+}
+
+function filtrarClientesEnPantalla() {
+    const texto = document.getElementById('busquedaClienteInput').value.toLowerCase();
+    const filtrados = clientesCache.filter(c => 
+        (c.nombre && c.nombre.toLowerCase().includes(texto)) ||
+        (c.apellido && c.apellido.toLowerCase().includes(texto)) ||
+        (c.celular && c.celular.includes(texto)) ||
+        (c.nodo && c.nodo.toLowerCase().includes(texto))
+    );
+    
+    renderizarConArreglo(filtrados);
+}
+
+function copiarReporteSupervisor() {
+    if (!clientesCache || clientesCache.length === 0) {
+        alert("No hay registros para generar el reporte.");
+        return;
+    }
+
+    let reporte = `📋 *REPORTE DE GESTIONES / ACTIVACIONES* 📋\n`;
+    reporte += `Fecha: ${new Date().toLocaleDateString()}\n\n`;
+
+    clientesCache.forEach((c, index) => {
+        reporte += `${index + 1}. *Cliente:* ${c.nombre || ''} ${c.apellido || ''}\n`;
+        reporte += `   📱 *Celular:* ${c.celular}\n`;
+        reporte += `   🏷️ *Promoción:* ${c.promocion}\n`;
+        reporte += `   📍 *Nodo:* ${c.nodo} (${c.departamento}, ${c.municipio})\n`;
+        reporte += `   💰 *Precio:* ${c.precio}\n-------------------\n`;
+    });
+
+    navigator.clipboard.writeText(reporte).then(() => {
+        alert("¡Reporte copiado al portapapeles! Ya puedes pegarlo en WhatsApp o Telegram para tu supervisor.");
+    }).catch(err => {
+        console.error("Error al copiar: ", err);
+        alert("No se pudo copiar el reporte.");
+    });
 }
 
 async function eliminarClienteRegistrado(index, supabaseId) {

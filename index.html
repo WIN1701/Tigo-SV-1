@@ -112,18 +112,19 @@
 
         <!-- SECCIÓN / PANTALLA AMPLIA DE CLIENTES REGISTRADOS -->
         <div id="seccionClientes" class="hidden" style="margin-top: 20px;">
-            <div class="card" style="text-align: left;">
+            <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <div>
-                        <h2 class="results-header" style="margin: 0; border: none; padding: 0;">Clientes y Promociones Guardadas</h2>
-                        <p class="welcome-subtitle" style="margin: 4px 0 0 0;">Listado amplio y ordenado de los registros guardados mediante el formulario.</p>
-                    </div>
-                    <button class="tigo-btn" style="width: auto; padding: 8px 16px; font-size: 0.85rem;" onclick="mostrarPantallaBusqueda()">← Volver a Búsqueda</button>
+                    <h3 style="margin: 0; color: var(--tigo-blue);">Clientes con Promoción Elegida</h3>
+                    <button class="tigo-btn" style="width: auto; padding: 6px 12px; font-size: 0.8rem;" onclick="mostrarPantallaBusqueda()">Volver a Buscar</button>
                 </div>
-                
-                <div id="listaClientesAmpliaContainer" class="results-grid">
-                    <!-- Se llena dinámicamente -->
+
+                <!-- Buscador rápido y Botón de Reporte -->
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="busquedaClienteInput" placeholder="Filtrar por nombre o celular..." oninput="filtrarClientesEnPantalla()" style="margin-bottom: 0;">
+                    <button class="tigo-btn" style="background: #10B981; width: auto; white-space: nowrap;" onclick="copiarReporteSupervisor()">Copiar Reporte</button>
                 </div>
+
+                <div id="listaClientesAmpliaContainer" class="results-grid"></div>
             </div>
         </div>
 
@@ -283,6 +284,7 @@
         let servicioFiltroActivo = 'TODOS';
         let usuarioActualId = null;
         let promocionSeleccionadaTemporal = null;
+        let clientesCache = []; // Caché para el filtro rápido y reporte
 
         function verificarLogin() {
             const usuarioVal = document.getElementById('userInput').value.trim();
@@ -329,6 +331,7 @@
             document.getElementById('historialContainer').innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; margin: 0;">No hay búsquedas recientes registradas.</p>`;
             document.getElementById('userDropdownMenu').classList.remove('show');
             resultadosGlobales = [];
+            clientesCache = [];
         }
 
         function toggleMenuDropdown() {
@@ -353,6 +356,7 @@
             document.getElementById('userDropdownMenu').classList.remove('show');
             document.getElementById('seccionBusqueda').classList.add('hidden');
             document.getElementById('seccionClientes').classList.remove('hidden');
+            document.getElementById('busquedaClienteInput').value = '';
             renderizarListaClientesAmplia();
         }
 
@@ -725,13 +729,20 @@
                 return;
             }
 
-            if (!listaClientes || listaClientes.length === 0) {
+            clientesCache = listaClientes || [];
+            renderizarConArreglo(clientesCache);
+        }
+
+        function renderizarConArreglo(lista) {
+            const container = document.getElementById('listaClientesAmpliaContainer');
+            
+            if (!lista || lista.length === 0) {
                 container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; padding: 20px; grid-column: 1 / -1;">No hay clientes o promociones guardadas todavía.</p>`;
                 return;
             }
 
             let html = '';
-            listaClientes.forEach((cli) => {
+            lista.forEach((cli) => {
                 html += `
                     <div class="resultado-card" style="text-align: left;">
                         <span class="badge-categoria cat-focalizada">${cli.promocion}</span>
@@ -745,6 +756,43 @@
                 `;
             });
             container.innerHTML = html;
+        }
+
+        function filtrarClientesEnPantalla() {
+            const texto = document.getElementById('busquedaClienteInput').value.toLowerCase();
+            const filtrados = clientesCache.filter(c => 
+                (c.nombre && c.nombre.toLowerCase().includes(texto)) ||
+                (c.apellido && c.apellido.toLowerCase().includes(texto)) ||
+                (c.celular && c.celular.includes(texto)) ||
+                (c.nodo && c.nodo.toLowerCase().includes(texto)) ||
+                (c.promocion && c.promocion.toLowerCase().includes(texto))
+            );
+            renderizarConArreglo(filtrados);
+        }
+
+        function copiarReporteSupervisor() {
+            if (!clientesCache || clientesCache.length === 0) {
+                alert("No hay registros para generar el reporte.");
+                return;
+            }
+
+            let reporte = `📋 *REPORTE DE GESTIONES / ACTIVACIONES* 📋\n`;
+            reporte += `Fecha: ${new Date().toLocaleDateString()}\n\n`;
+
+            clientesCache.forEach((c, index) => {
+                reporte += `${index + 1}. *Cliente:* ${c.nombre || ''} ${c.apellido || ''}\n`;
+                reporte += `   📱 *Celular:* ${c.celular}\n`;
+                reporte += `   🏷️ *Promoción:* ${c.promocion}\n`;
+                reporte += `   📍 *Nodo:* ${c.nodo} (${c.departamento || ''}, ${c.municipio || ''})\n`;
+                reporte += `   💰 *Precio:* ${c.precio}\n-------------------\n`;
+            });
+
+            navigator.clipboard.writeText(reporte).then(() => {
+                alert("¡Reporte copiado al portapapeles! Ya puedes pegarlo en WhatsApp o Telegram para tu supervisor.");
+            }).catch(err => {
+                console.error("Error al copiar: ", err);
+                alert("No se pudo copiar el reporte.");
+            });
         }
 
         async function eliminarClienteRegistrado(idRegistro) {
