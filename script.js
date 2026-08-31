@@ -512,7 +512,6 @@ async function guardarClienteRegistrado() {
         fecha: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    // Sincronización con Supabase (tabla clientes_tigo)
     try {
         const { error } = await supabase
             .from('clientes_tigo')
@@ -525,7 +524,6 @@ async function guardarClienteRegistrado() {
         console.warn('Conexión con Supabase no disponible temporalmente.');
     }
 
-    // Respaldo automático en localStorage
     const claveStorage = `clientes_tigo_${usuarioActualId}`;
     let listaClientes = JSON.parse(localStorage.getItem(claveStorage)) || [];
     listaClientes.unshift(nuevoRegistro);
@@ -543,7 +541,6 @@ async function renderizarListaClientesAmplia() {
 
     let listaClientes = [];
 
-    // Intentar consulta en Supabase
     try {
         const { data, error } = await supabase
             .from('clientes_tigo')
@@ -557,7 +554,6 @@ async function renderizarListaClientesAmplia() {
         console.warn('Consulta remota no disponible');
     }
 
-    // Respaldo local en caso de requerirlo
     if (listaClientes.length === 0) {
         const claveStorage = `clientes_tigo_${usuarioActualId}`;
         listaClientes = JSON.parse(localStorage.getItem(claveStorage)) || [];
