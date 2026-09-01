@@ -379,6 +379,68 @@ button.tigo-btn:hover {
     box-shadow: 0 4px 12px rgba(0, 55, 123, 0.25);
 }
 
+/* ANIMACIÓN DE BIENVENIDA ESTILO IPHONE (SPLASH SCREEN) */
+.welcome-splash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg-gradient);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeOutSplash 0.8s ease 3.2s forwards;
+}
+
+.splash-container {
+    text-align: center;
+    color: #FFFFFF;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+
+.splash-greeting {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+    background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textCycle 3s infinite;
+}
+
+.splash-sub {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.85;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutSplash {
+    to {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+}
+
+@keyframes textCycle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
 /* MODAL */
 .modal-overlay {
     position: fixed;

@@ -10,6 +10,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <div class="welcome-splash">
+        <div class="splash-container">
+            <div class="splash-greeting">¡Hola!</div>
+            <div class="splash-sub">Bienvenido a Tigo</div>
+        </div>
+    </div>
 
     <!-- CONTENEDOR DE LOGIN -->
     <div id="loginContainer" class="container">
@@ -211,6 +217,21 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_H8jz7_R7LKVSt2aAeoIjqQ_HXZCqiuI';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // ==========================================
+        // REGISTRO DE SERVICE WORKER (MODO OFFLINE)
+        // ==========================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registrado con éxito:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('Fallo al registrar el Service Worker:', error);
+                    });
+            });
+        }
+
         const usuariosRegistrados = {
             "17": {
                 password: "WIN",
@@ -317,7 +338,7 @@
         let servicioFiltroActivo = 'TODOS';
         let usuarioActualId = null;
         let promocionSeleccionadaTemporal = null;
-        let clientesCache = []; // Caché para el filtro rápido y reporte
+        let clientesCache = [];
 
         function verificarLogin() {
             const usuarioVal = document.getElementById('userInput').value.trim();
