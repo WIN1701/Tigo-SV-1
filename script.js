@@ -1,4 +1,4 @@
-// Configuración e inicialización de Supabase con tus credenciales
+// Configuración e inicialización de Supabase con tus credenciales[cite: 5]
 const SUPABASE_URL = 'https://jbecwhpkjefoqvkevtea.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_H8jz7_R7LKVSt2aAeoIjqQ_HXZCqiuI';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -110,7 +110,7 @@ let categoriaFiltroActiva = 'TODOS';
 let servicioFiltroActivo = 'TODOS';
 let usuarioActualId = null;
 let promocionSeleccionadaTemporal = null;
-let clientesCache = []; // Variable global temporal para guardar la lista de clientes cargados
+let clientesCache = [];
 
 function verificarLogin() {
     const usuarioVal = document.getElementById('userInput').value.trim();
@@ -516,18 +516,7 @@ async function guardarClienteRegistrado() {
         fecha: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    try {
-        const { error } = await supabase
-            .from('clientes_tigo')
-            .insert([nuevoRegistro]);
-
-        if (error) {
-            console.warn('Aviso: Guardado remoto en Supabase omitido o pendiente de tabla:', error.message);
-        }
-    } catch (err) {
-        console.warn('Conexión con Supabase no disponible temporalmente.');
-    }
-
+    // 1. Guardado inmediato en LocalStorage (cero demoras para el usuario)
     const claveStorage = `clientes_tigo_${usuarioActualId}`;
     let listaClientes = JSON.parse(localStorage.getItem(claveStorage)) || [];
     listaClientes.unshift(nuevoRegistro);
@@ -535,6 +524,13 @@ async function guardarClienteRegistrado() {
 
     cerrarModalCliente();
     alert('¡Promoción y datos del cliente guardados exitosamente!');
+
+    // 2. Sincronización en segundo plano con Supabase (no bloquea la interfaz)
+    supabase.from('clientes_tigo').insert([nuevoRegistro]).then(({ error }) => {
+        if (error) console.warn('Aviso de sincronización remota:', error.message);
+    }).catch(() => {
+        console.warn('Trabajando en modo local temporalmente.');
+    });
 }
 
 async function renderizarListaClientesAmplia() {
@@ -543,8 +539,12 @@ async function renderizarListaClientesAmplia() {
     const container = document.getElementById('listaClientesAmpliaContainer');
     container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; padding: 20px; grid-column: 1 / -1;">Cargando registros...</p>`;
 
-    let listaClientes = [];
+    // Cargar inmediatamente desde LocalStorage para mostrar la información al instante
+    const claveStorage = `clientes_tigo_${usuarioActualId}`;
+    clientesCache = JSON.parse(localStorage.getItem(claveStorage)) || [];
+    renderizarConArreglo(clientesCache);
 
+    // Intentar refrescar desde Supabase de forma silenciosa en segundo plano
     try {
         const { data, error } = await supabase
             .from('clientes_tigo')
@@ -552,21 +552,12 @@ async function renderizarListaClientesAmplia() {
             .eq('usuario_id', usuarioActualId);
 
         if (!error && data && data.length > 0) {
-            listaClientes = data;
+            clientesCache = data;
+            renderizarConArreglo(clientesCache);
         }
     } catch (err) {
-        console.warn('Consulta remota no disponible');
+        console.warn('No se pudo conectar a Supabase, usando caché local.');
     }
-
-    if (listaClientes.length === 0) {
-        const claveStorage = `clientes_tigo_${usuarioActualId}`;
-        listaClientes = JSON.parse(localStorage.getItem(claveStorage)) || [];
-    }
-
-    // Asignamos la lista a la caché global
-    clientesCache = listaClientes;
-
-    renderizarConArreglo(clientesCache);
 }
 
 function renderizarConArreglo(lista) {
@@ -623,12 +614,25 @@ function copiarReporteSupervisor() {
         reporte += `   💰 *Precio:* ${c.precio}\n-------------------\n`;
     });
 
-    navigator.clipboard.writeText(reporte).then(() => {
-        alert("¡Reporte copiado al portapapeles! Ya puedes pegarlo en WhatsApp o Telegram para tu supervisor.");
-    }).catch(err => {
+    // Método robusto compatible con un textarea temporal para evitar errores de enfoque o parpadeo
+    const textarea = document.createElement("textarea");
+    textarea.value = reporte;
+    document.body.appendChild(textarea);
+    textarea.select();
+    
+    try {
+        const exitoso = document.execCommand('copy');
+        if (exitoso) {
+            alert("¡Reporte copiado al portapapeles! Ya puedes pegarlo en WhatsApp o Telegram para tu supervisor.");
+        } else {
+            alert("No se pudo copiar el reporte.");
+        }
+    } catch (err) {
         console.error("Error al copiar: ", err);
         alert("No se pudo copiar el reporte.");
-    });
+    }
+    
+    document.body.removeChild(textarea);
 }
 
 async function eliminarClienteRegistrado(index, supabaseId) {
@@ -653,4 +657,123 @@ async function eliminarClienteRegistrado(index, supabaseId) {
     }
 
     renderizarListaClientesAmplia();
+}
+
+function abrirModalExportar() {
+    if (!clientesCache || clientesCache.length === 0) {
+        alert("No hay registros disponibles para exportar.");
+        return;
+    }
+    const now = new Date();
+    const anio = now.getFullYear();
+    const mes = String(now.getMonth() + 1).padStart(2, '0');
+    document.getElementById('inputMesExport').value = `${anio}-${mes}`;
+    
+    document.getElementById('modalExportar').classList.add('show');
+}
+
+function cerrarModalExportar() {
+    document.getElementById('modalExportar').classList.remove('show');
+}
+
+function cambiarTipoFiltroExport() {
+    const tipo = document.getElementById('tipoFiltroExport').value;
+    const containerMes = document.getElementById('containerMes');
+    const containerSemana = document.getElementById('containerSemana');
+
+    if (tipo === 'mes') {
+        containerMes.style.display = 'block';
+        containerSemana.style.display = 'none';
+    } else if (tipo === 'semana') {
+        containerMes.style.display = 'none';
+        containerSemana.style.display = 'block';
+    } else {
+        containerMes.style.display = 'none';
+        containerSemana.style.display = 'none';
+    }
+}
+
+function parsearFechaCliente(fechaStr) {
+    if (!fechaStr) return new Date(0);
+    const partesFechaHora = fechaStr.split(' ');
+    const partesFecha = partesFechaHora[0].split('/');
+    if (partesFecha.length === 3) {
+        const dia = parseInt(partesFecha[0], 10);
+        const mes = parseInt(partesFecha[1], 10) - 1;
+        const anio = parseInt(partesFecha[2], 10);
+        return new Date(anio, mes, dia);
+    }
+    return new Date(fechaStr);
+}
+
+function ejecutarExportacionCSV() {
+    const tipo = document.getElementById('tipoFiltroExport').value;
+    let datosFiltrados = [...clientesCache];
+
+    if (tipo === 'mes') {
+        const valMes = document.getElementById('inputMesExport').value; 
+        if (!valMes) {
+            alert("Por favor selecciona un mes válido.");
+            return;
+        }
+        const [anioSel, mesSel] = valMes.split('-').map(Number);
+        
+        datosFiltrados = clientesCache.filter(c => {
+            const fechaC = parsearFechaCliente(c.fecha);
+            return fechaC.getFullYear() === anioSel && (fechaC.getMonth() + 1) === mesSel;
+        });
+    } else if (tipo === 'semana') {
+        const valSemana = document.getElementById('inputSemanaExport').value; 
+        if (!valSemana) {
+            alert("Por favor selecciona una semana válida.");
+            return;
+        }
+        datosFiltrados = clientesCache.filter(c => {
+            const fechaC = parsearFechaCliente(c.fecha);
+            const numeroSemanaCliente = getNumeroSemana(fechaC);
+            const anioCliente = fechaC.getFullYear();
+            
+            const [anioSel, semSel] = valSemana.split('-W').map(Number);
+            return anioCliente === anioSel && numeroSemanaCliente === semSel;
+        });
+    }
+
+    if (datosFiltrados.length === 0) {
+        alert("No se encontraron registros para el período de tiempo seleccionado.");
+        return;
+    }
+
+    let csvContent = "\uFEFF"; 
+    csvContent += "Nombre del Cliente,Teléfono,Status,Nodo,Ubicación,Promoción,Fecha de Consulta\n";
+
+    datosFiltrados.forEach(c => {
+        const nombreCompleto = `${c.nombre || ''} ${c.apellido || ''}`.replace(/,/g, '');
+        const telefono = c.celular || '';
+        const status = c.status || 'Registrado'; 
+        const nodo = c.nodo || '';
+        const ubicacion = `${c.colonia || ''}, ${c.municipio || ''}, ${c.departamento || ''}`.replace(/,/g, ' -');
+        const promocion = (c.promocion || '').replace(/,/g, '');
+        const fecha = c.fecha || '';
+
+        csvContent += `"${nombreCompleto}","${telefono}","${status}","${nodo}","${ubicacion}","${promocion}","${fecha}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Reporte_Gestiones_Tigo_${tipo}_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    cerrarModalExportar();
+}
+
+function getNumeroSemana(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+    var añoInicio = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    var semanaNo = Math.ceil((((d - añoInicio) / 86400000) + 1)/7);
+    return semanaNo;
 }

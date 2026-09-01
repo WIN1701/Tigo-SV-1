@@ -118,10 +118,11 @@
                     <button class="tigo-btn" style="width: auto; padding: 6px 12px; font-size: 0.8rem;" onclick="mostrarPantallaBusqueda()">Volver a Buscar</button>
                 </div>
 
-                <!-- Buscador rápido y Botón de Reporte -->
-                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                    <input type="text" id="busquedaClienteInput" placeholder="Filtrar por nombre o celular..." oninput="filtrarClientesEnPantalla()" style="margin-bottom: 0;">
+                <!-- Buscador rápido, Botón de Reporte y Botón de Exportación CSV -->
+                <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <input type="text" id="busquedaClienteInput" placeholder="Filtrar por nombre o celular..." oninput="filtrarClientesEnPantalla()" style="margin-bottom: 0; flex: 1; min-width: 150px;">
                     <button class="tigo-btn" style="background: #10B981; width: auto; white-space: nowrap;" onclick="copiarReporteSupervisor()">Copiar Reporte</button>
+                    <button class="tigo-btn" style="background: #107C41; width: auto; white-space: nowrap;" onclick="abrirModalExportar()">📊 Exportar a Excel (CSV)</button>
                 </div>
 
                 <div id="listaClientesAmpliaContainer" class="results-grid"></div>
@@ -166,6 +167,38 @@
             <button onclick="cerrarDetallesPromo()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); font-weight: bold;">&times;</button>
             <div id="detallesPromoContenido">
                 <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE EXPORTACIÓN A EXCEL / CSV -->
+    <div id="modalExportar" class="modal-overlay">
+        <div class="card" style="max-width: 400px; width: 100%; text-align: left;">
+            <h3 style="color: var(--tigo-blue); margin-top: 0;">Exportar Reporte a Excel</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Selecciona el filtro de tiempo que deseas exportar:</p>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 4px;">Tipo de Filtro:</label>
+                <select id="tipoFiltroExport" class="tigo-input" onchange="cambiarTipoFiltroExport()">
+                    <option value="mes">Por Mes Específico</option>
+                    <option value="semana">Por Semana Específica</option>
+                    <option value="todos">Todos los Registros</option>
+                </select>
+            </div>
+
+            <div id="containerMes" style="margin-bottom: 12px;">
+                <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 4px;">Selecciona el Mes:</label>
+                <input type="month" id="inputMesExport" class="tigo-input">
+            </div>
+
+            <div id="containerSemana" style="margin-bottom: 12px; display: none;">
+                <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 4px;">Selecciona una Semana:</label>
+                <input type="week" id="inputSemanaExport" class="tigo-input">
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 20px;">
+                <button class="tigo-btn" style="flex: 1; background: #E5E7EB; color: var(--text-main);" onclick="cerrarModalExportar()">Cancelar</button>
+                <button class="tigo-btn" style="flex: 1;" onclick="ejecutarExportacionCSV()">Descargar CSV</button>
             </div>
         </div>
     </div>
@@ -810,6 +843,128 @@
             }
 
             renderizarListaClientesAmplia();
+        }
+
+        // ==========================================
+        // FUNCIONES DE EXPORTACIÓN A EXCEL (CSV)
+        // ==========================================
+        function abrirModalExportar() {
+            if (!clientesCache || clientesCache.length === 0) {
+                alert("No hay registros disponibles para exportar.");
+                return;
+            }
+            const now = new Date();
+            const anio = now.getFullYear();
+            const mes = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('inputMesExport').value = `${anio}-${mes}`;
+            
+            document.getElementById('modalExportar').classList.add('show');
+        }
+
+        function cerrarModalExportar() {
+            document.getElementById('modalExportar').classList.remove('show');
+        }
+
+        function cambiarTipoFiltroExport() {
+            const tipo = document.getElementById('tipoFiltroExport').value;
+            const containerMes = document.getElementById('containerMes');
+            const containerSemana = document.getElementById('containerSemana');
+
+            if (tipo === 'mes') {
+                containerMes.style.display = 'block';
+                containerSemana.style.display = 'none';
+            } else if (tipo === 'semana') {
+                containerMes.style.display = 'none';
+                containerSemana.style.display = 'block';
+            } else {
+                containerMes.style.display = 'none';
+                containerSemana.style.display = 'none';
+            }
+        }
+
+        function parsearFechaCliente(fechaStr) {
+            if (!fechaStr) return new Date(0);
+            const partesFechaHora = fechaStr.split(' ');
+            const partesFecha = partesFechaHora[0].split('/');
+            if (partesFecha.length === 3) {
+                const dia = parseInt(partesFecha[0], 10);
+                const mes = parseInt(partesFecha[1], 10) - 1;
+                const anio = parseInt(partesFecha[2], 10);
+                return new Date(anio, mes, dia);
+            }
+            return new Date(fechaStr);
+        }
+
+        function ejecutarExportacionCSV() {
+            const tipo = document.getElementById('tipoFiltroExport').value;
+            let datosFiltrados = [...clientesCache];
+
+            if (tipo === 'mes') {
+                const valMes = document.getElementById('inputMesExport').value;
+                if (!valMes) {
+                    alert("Por favor selecciona un mes válido.");
+                    return;
+                }
+                const [anioSel, mesSel] = valMes.split('-').map(Number);
+                
+                datosFiltrados = clientesCache.filter(c => {
+                    const fechaC = parsearFechaCliente(c.fecha);
+                    return fechaC.getFullYear() === anioSel && (fechaC.getMonth() + 1) === mesSel;
+                });
+            } else if (tipo === 'semana') {
+                const valSemana = document.getElementById('inputSemanaExport').value;
+                if (!valSemana) {
+                    alert("Por favor selecciona una semana válida.");
+                    return;
+                }
+                datosFiltrados = clientesCache.filter(c => {
+                    const fechaC = parsearFechaCliente(c.fecha);
+                    const numeroSemanaCliente = getNumeroSemana(fechaC);
+                    const anioCliente = fechaC.getFullYear();
+                    
+                    const [anioSel, semSel] = valSemana.split('-W').map(Number);
+                    return anioCliente === anioSel && numeroSemanaCliente === semSel;
+                });
+            }
+
+            if (datosFiltrados.length === 0) {
+                alert("No se encontraron registros para el período de tiempo seleccionado.");
+                return;
+            }
+
+            let csvContent = "\uFEFF";
+            csvContent += "Nombre del Cliente,Teléfono,Status,Nodo,Ubicación,Promoción,Fecha de Consulta\n";
+
+            datosFiltrados.forEach(c => {
+                const nombreCompleto = `${c.nombre || ''} ${c.apellido || ''}`.replace(/,/g, '');
+                const telefono = c.celular || '';
+                const status = c.status || 'Registrado';
+                const nodo = c.nodo || '';
+                const ubicacion = `${c.colonia || ''}, ${c.municipio || ''}, ${c.departamento || ''}`.replace(/,/g, ' -');
+                const promocion = (c.promocion || '').replace(/,/g, '');
+                const fecha = c.fecha || '';
+
+                csvContent += `"${nombreCompleto}","${telefono}","${status}","${nodo}","${ubicacion}","${promocion}","${fecha}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Reporte_Gestiones_Tigo_${tipo}_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            cerrarModalExportar();
+        }
+
+        function getNumeroSemana(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+            var añoInicio = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            var semanaNo = Math.ceil((((d - añoInicio) / 86400000) + 1)/7);
+            return semanaNo;
         }
     </script>
 </body>
