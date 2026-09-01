@@ -8,6 +8,41 @@
     
     <!-- SDK de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Estilos integrados para el sistema de Toasts -->
+    <style>
+        #toastContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .tigo-toast {
+            background: #ffffff;
+            color: #1e293b;
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: auto;
+            font-family: Arial, sans-serif;
+            font-size: 0.9rem;
+            border-left: 4px solid #00377B;
+        }
+        .tigo-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tigo-toast.success { border-left-color: #10B981; }
+        .tigo-toast.error { border-left-color: #EF4444; }
+        .tigo-toast.info { border-left-color: #00377B; }
+    </style>
 </head>
 <body>
     <div class="welcome-splash">
@@ -209,7 +244,48 @@
         </div>
     </div>
 
+    <!-- Contenedor dinámico de alertas flotantes[cite: 5] -->
+    <div id="toastContainer"></div>
+
     <script>
+        // ==========================================
+        // FUNCIÓN DE TOASTS FLOTANTES
+        // ==========================================
+        function mostrarToast(mensaje, tipo = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `tigo-toast ${tipo}`;
+            
+            // Icono según el tipo de alerta
+            const icono = tipo === 'success' ? '✅' : tipo === 'error' ? '❌' : 'ℹ️';
+            
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.1rem;">${icono}</span>
+                    <span>${mensaje}</span>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Forzar reflow para activar la animación de entrada
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // Ocultar y remover después de 3.5 segundos
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode === container) {
+                        container.removeChild(toast);
+                    }
+                }, 300); // Tiempo de la transición CSS
+            }, 3500);
+        }
+
         // ==========================================
         // CONFIGURACIÓN DE SUPABASE
         // ==========================================
@@ -345,6 +421,7 @@
 
             if (!usuarioVal || !passwordVal) {
                 errorDiv.textContent = "Por favor, complete ambos campos.";
+                mostrarToast("Por favor, complete ambos campos de acceso.", "error");
                 return;
             }
 
@@ -361,8 +438,10 @@
 
                 mostrarPantallaBusqueda();
                 cargarHistorial();
+                mostrarToast(`¡Bienvenid@, ${usuarioActivo.nombre}!`, "success");
             } else {
                 errorDiv.textContent = "Credenciales incorrectas. Verifique su usuario y contraseña.";
+                mostrarToast("Credenciales incorrectas.", "error");
             }
         }
 
@@ -382,6 +461,7 @@
             document.getElementById('userDropdownMenu').classList.remove('show');
             resultadosGlobales = [];
             clientesCache = [];
+            mostrarToast("Sesión cerrada correctamente.", "info");
         }
 
         function toggleMenuDropdown() {
@@ -422,7 +502,7 @@
             const coloniaInput = document.getElementById('coloniaInput').value;
 
             if (!deptoInput.trim() || !muniInput.trim() || !coloniaInput.trim()) {
-                alert('Por favor, complete todos los campos de ubicación (Departamento, Municipio y Colonia).');
+                mostrarToast('Por favor, complete todos los campos de ubicación (Departamento, Municipio y Colonia).', 'error');
                 return;
             }
 
@@ -446,6 +526,7 @@
             servicioFiltroActivo = 'TODOS';
 
             renderizarResultados();
+            mostrarToast('Consulta realizada exitosamente.', 'success');
         }
 
         async function guardarEnHistorial(depto, muni, colonia) {
@@ -523,6 +604,7 @@
                 .delete()
                 .eq('usuario_id', usuarioActualId);
             cargarHistorial();
+            mostrarToast('Historial borrado.', 'info');
         }
 
         function filtrarPorCategoria(cat) {
@@ -730,6 +812,7 @@
             const regexCelular = /^\d{8}$/;
             if (!regexCelular.test(celular)) {
                 errorDiv.textContent = "El número de celular es obligatorio y debe tener exactamente 8 dígitos.";
+                mostrarToast("El celular debe tener 8 dígitos.", "error");
                 return;
             }
 
@@ -754,11 +837,12 @@
             if (error) {
                 console.error("Error al guardar en Supabase:", error);
                 errorDiv.textContent = "Hubo un error al guardar en la base de datos.";
+                mostrarToast("Error al guardar en la base de datos.", "error");
                 return;
             }
 
             cerrarModalCliente();
-            alert('¡Promoción y datos del cliente guardados exitosamente en la nube!');
+            mostrarToast('¡Promoción y datos del cliente guardados exitosamente en la nube!', 'success');
         }
 
         async function renderizarListaClientesAmplia() {
@@ -776,6 +860,7 @@
             if (error) {
                 console.error("Error al cargar clientes:", error);
                 container.innerHTML = `<p style="text-align: center; color: red; padding: 20px; grid-column: 1 / -1;">Error al cargar los datos de la nube.</p>`;
+                mostrarToast("Error al cargar los clientes.", "error");
                 return;
             }
 
@@ -822,7 +907,7 @@
 
         function copiarReporteSupervisor() {
             if (!clientesCache || clientesCache.length === 0) {
-                alert("No hay registros para generar el reporte.");
+                mostrarToast("No hay registros para generar el reporte.", "error");
                 return;
             }
 
@@ -838,10 +923,10 @@
             });
 
             navigator.clipboard.writeText(reporte).then(() => {
-                alert("¡Reporte copiado al portapapeles! Ya puedes pegarlo en WhatsApp o Telegram para tu supervisor.");
+                mostrarToast("¡Reporte copiado al portapapeles!", "success");
             }).catch(err => {
                 console.error("Error al copiar: ", err);
-                alert("No se pudo copiar el reporte.");
+                mostrarToast("No se pudo copiar el reporte.", "error");
             });
         }
 
@@ -855,11 +940,12 @@
 
             if (error) {
                 console.error("Error al eliminar:", error);
-                alert("No se pudo eliminar el registro.");
+                mostrarToast("No se pudo eliminar el registro.", "error");
                 return;
             }
 
             renderizarListaClientesAmplia();
+            mostrarToast("Registro eliminado con éxito.", "info");
         }
 
         // ==========================================
@@ -867,7 +953,7 @@
         // ==========================================
         function abrirModalExportar() {
             if (!clientesCache || clientesCache.length === 0) {
-                alert("No hay registros disponibles para exportar.");
+                mostrarToast("No hay registros disponibles para exportar.", "error");
                 return;
             }
             const now = new Date();
@@ -919,7 +1005,7 @@
             if (tipo === 'mes') {
                 const valMes = document.getElementById('inputMesExport').value;
                 if (!valMes) {
-                    alert("Por favor selecciona un mes válido.");
+                    mostrarToast("Por favor selecciona un mes válido.", "error");
                     return;
                 }
                 const [anioSel, mesSel] = valMes.split('-').map(Number);
@@ -931,7 +1017,7 @@
             } else if (tipo === 'semana') {
                 const valSemana = document.getElementById('inputSemanaExport').value;
                 if (!valSemana) {
-                    alert("Por favor selecciona una semana válida.");
+                    mostrarToast("Por favor selecciona una semana válida.", "error");
                     return;
                 }
                 datosFiltrados = clientesCache.filter(c => {
@@ -945,7 +1031,7 @@
             }
 
             if (datosFiltrados.length === 0) {
-                alert("No se encontraron registros para el período de tiempo seleccionado.");
+                mostrarToast("No se encontraron registros para el período seleccionado.", "error");
                 return;
             }
 
@@ -974,6 +1060,7 @@
             document.body.removeChild(link);
 
             cerrarModalExportar();
+            mostrarToast("Archivo CSV descargado con éxito.", "success");
         }
 
         function getNumeroSemana(d) {

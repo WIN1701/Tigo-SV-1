@@ -1,3 +1,49 @@
+/* Contenedor flotante para las alertas toast */
+#toastContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 320px;
+    width: 100%;
+    pointer-events: none;
+}
+
+/* Diseño base del Toast */
+.tigo-toast {
+    background: #FFFFFF;
+    color: var(--text-main);
+    padding: 14px 16px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 55, 123, 0.15);
+    border-left: 4px solid var(--tigo-blue);
+    font-size: 0.85rem;
+    font-family: inherit;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tigo-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tigo-toast.success {
+    border-left-color: #10B981;
+}
+
+.tigo-toast.error {
+    border-left-color: #EF4444;
+}
+
 :root {
     --tigo-deep-blue: #001e4d;
     --tigo-blue: #00377B;
@@ -155,6 +201,8 @@ body {
     text-align: center;
     position: relative;
     overflow: hidden;
+    transform: scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card::before {
@@ -452,12 +500,14 @@ button.tigo-btn:hover {
     align-items: center;
     z-index: 2000;
     opacity: 0;
-    transition: opacity 0.25s ease;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .modal-overlay.show {
     display: flex;
     opacity: 1;
+    visibility: visible;
 }
 
 .modal-card {
@@ -470,9 +520,10 @@ button.tigo-btn:hover {
     text-align: left;
     box-sizing: border-box;
     transform: scale(0.95);
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.modal-overlay.show .modal-card {
+.modal-overlay.show .modal-card, 
+.modal-overlay.show .card {
     transform: scale(1);
 }
