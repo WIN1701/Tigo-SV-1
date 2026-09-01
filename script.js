@@ -352,21 +352,21 @@ function renderizarResultados() {
             <div class="filter-section">
                 <span class="filter-label">Filtrar por Categoría:</span>
                 <div class="filter-buttons-group">
-                    <button class="filter-btn ${categoriaFiltroActiva === 'TODOS' ? 'active' : ''}" style="background: ${categoriaFiltroActiva === 'TODOS' ? 'var(--tigo-blue)' : '#FAFCFF'}" onclick="filtrarPorCategoria('TODOS')">Todos</button>
-                    <button class="filter-btn ${categoriaFiltroActiva === 'FOCALIZADA' ? 'active' : ''}" style="background: ${categoriaFiltroActiva === 'FOCALIZADA' ? 'var(--tag-focalizada)' : '#FAFCFF'}" onclick="filtrarPorCategoria('FOCALIZADA')">Focalizada</button>
-                    <button class="filter-btn ${categoriaFiltroActiva === 'CABLERA_ORIENTE' ? 'active' : ''}" style="background: ${categoriaFiltroActiva === 'CABLERA_ORIENTE' ? 'var(--tag-cablera)' : '#FAFCFF'}" onclick="filtrarPorCategoria('CABLERA_ORIENTE')">Cablera Oriente</button>
-                    <button class="filter-btn ${categoriaFiltroActiva === 'REGULAR' ? 'active' : ''}" style="background: ${categoriaFiltroActiva === 'REGULAR' ? 'var(--tag-regular)' : '#FAFCFF'}" onclick="filtrarPorCategoria('REGULAR')">Regular</button>
-                    <button class="filter-btn ${categoriaFiltroActiva === 'TELEMAS' ? 'active' : ''}" style="background: ${categoriaFiltroActiva === 'TELEMAS' ? 'var(--tag-telemas)' : '#FAFCFF'}" onclick="filtrarPorCategoria('TELEMAS')">Cablera Oriente Telemas</button>
+                    <button class="filter-btn ${categoriaFiltroActiva === 'TODOS' ? 'active' : ''}" onclick="filtrarPorCategoria('TODOS')">Todos</button>
+                    <button class="filter-btn ${categoriaFiltroActiva === 'FOCALIZADA' ? 'active' : ''}" onclick="filtrarPorCategoria('FOCALIZADA')">Focalizada</button>
+                    <button class="filter-btn ${categoriaFiltroActiva === 'CABLERA_ORIENTE' ? 'active' : ''}" onclick="filtrarPorCategoria('CABLERA_ORIENTE')">Cablera Oriente</button>
+                    <button class="filter-btn ${categoriaFiltroActiva === 'REGULAR' ? 'active' : ''}" onclick="filtrarPorCategoria('REGULAR')">Regular</button>
+                    <button class="filter-btn ${categoriaFiltroActiva === 'TELEMAS' ? 'active' : ''}" onclick="filtrarPorCategoria('TELEMAS')">Cablera Oriente Telemas</button>
                 </div>
             </div>
 
             <div class="filter-section" style="margin-bottom: 0;">
                 <span class="filter-label">Filtrar por Tipo de Servicio:</span>
                 <div class="filter-buttons-group">
-                    <button class="filter-btn ${servicioFiltroActivo === 'TODOS' ? 'active' : ''}" style="background: ${servicioFiltroActivo === 'TODOS' ? 'var(--tigo-cyan)' : '#FAFCFF'}" onclick="filtrarPorServicio('TODOS')">Todos los Servicios</button>
-                    <button class="filter-btn ${servicioFiltroActivo === 'SOLO_INTERNET' ? 'active' : ''}" style="background: ${servicioFiltroActivo === 'SOLO_INTERNET' ? 'var(--tigo-cyan)' : '#FAFCFF'}" onclick="filtrarPorServicio('SOLO_INTERNET')">Solo Internet</button>
-                    <button class="filter-btn ${servicioFiltroActivo === 'SOLO_CABLE' ? 'active' : ''}" style="background: ${servicioFiltroActivo === 'SOLO_CABLE' ? 'var(--tigo-cyan)' : '#FAFCFF'}" onclick="filtrarPorServicio('SOLO_CABLE')">Solo Cable</button>
-                    <button class="filter-btn ${servicioFiltroActivo === 'INTERNET_TV' ? 'active' : ''}" style="background: ${servicioFiltroActivo === 'INTERNET_TV' ? 'var(--tigo-cyan)' : '#FAFCFF'}" onclick="filtrarPorServicio('INTERNET_TV')">Internet + TV Digital</button>
+                    <button class="filter-btn ${servicioFiltroActivo === 'TODOS' ? 'active' : ''}" onclick="filtrarPorServicio('TODOS')">Todos los Servicios</button>
+                    <button class="filter-btn ${servicioFiltroActivo === 'SOLO_INTERNET' ? 'active' : ''}" onclick="filtrarPorServicio('SOLO_INTERNET')">Solo Internet</button>
+                    <button class="filter-btn ${servicioFiltroActivo === 'SOLO_CABLE' ? 'active' : ''}" onclick="filtrarPorServicio('SOLO_CABLE')">Solo Cable</button>
+                    <button class="filter-btn ${servicioFiltroActivo === 'INTERNET_TV' ? 'active' : ''}" onclick="filtrarPorServicio('INTERNET_TV')">Internet + TV Digital</button>
                 </div>
             </div>
         </div>
@@ -516,7 +516,6 @@ async function guardarClienteRegistrado() {
         fecha: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    // 1. Guardado inmediato en LocalStorage (cero demoras para el usuario)
     const claveStorage = `clientes_tigo_${usuarioActualId}`;
     let listaClientes = JSON.parse(localStorage.getItem(claveStorage)) || [];
     listaClientes.unshift(nuevoRegistro);
@@ -525,7 +524,6 @@ async function guardarClienteRegistrado() {
     cerrarModalCliente();
     alert('¡Promoción y datos del cliente guardados exitosamente!');
 
-    // 2. Sincronización en segundo plano con Supabase (no bloquea la interfaz)
     supabase.from('clientes_tigo').insert([nuevoRegistro]).then(({ error }) => {
         if (error) console.warn('Aviso de sincronización remota:', error.message);
     }).catch(() => {
@@ -539,12 +537,10 @@ async function renderizarListaClientesAmplia() {
     const container = document.getElementById('listaClientesAmpliaContainer');
     container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; padding: 20px; grid-column: 1 / -1;">Cargando registros...</p>`;
 
-    // Cargar inmediatamente desde LocalStorage para mostrar la información al instante
     const claveStorage = `clientes_tigo_${usuarioActualId}`;
     clientesCache = JSON.parse(localStorage.getItem(claveStorage)) || [];
     renderizarConArreglo(clientesCache);
 
-    // Intentar refrescar desde Supabase de forma silenciosa en segundo plano
     try {
         const { data, error } = await supabase
             .from('clientes_tigo')
@@ -614,7 +610,6 @@ function copiarReporteSupervisor() {
         reporte += `   💰 *Precio:* ${c.precio}\n-------------------\n`;
     });
 
-    // Método robusto compatible con un textarea temporal para evitar errores de enfoque o parpadeo
     const textarea = document.createElement("textarea");
     textarea.value = reporte;
     document.body.appendChild(textarea);
@@ -664,33 +659,47 @@ function abrirModalExportar() {
         alert("No hay registros disponibles para exportar.");
         return;
     }
+    const modal = document.getElementById('modalExportar');
+    if (!modal) {
+        alert("El modal de exportación no está presente en el HTML.");
+        return;
+    }
+
     const now = new Date();
     const anio = now.getFullYear();
     const mes = String(now.getMonth() + 1).padStart(2, '0');
-    document.getElementById('inputMesExport').value = `${anio}-${mes}`;
     
-    document.getElementById('modalExportar').classList.add('show');
+    const inputMes = document.getElementById('inputMesExport');
+    if (inputMes) {
+        inputMes.value = `${anio}-${mes}`;
+    }
+
+    const tipoFiltro = document.getElementById('tipoFiltroExport');
+    if (tipoFiltro) {
+        tipoFiltro.value = 'todos';
+        cambiarTipoFiltroExport();
+    }
+    
+    modal.classList.add('show');
 }
 
 function cerrarModalExportar() {
-    document.getElementById('modalExportar').classList.remove('show');
+    const modal = document.getElementById('modalExportar');
+    if (modal) {
+        modal.classList.remove('show');
+    }
 }
 
 function cambiarTipoFiltroExport() {
-    const tipo = document.getElementById('tipoFiltroExport').value;
+    const tipoSelect = document.getElementById('tipoFiltroExport');
+    if (!tipoSelect) return;
+
+    const tipo = tipoSelect.value;
     const containerMes = document.getElementById('containerMes');
     const containerSemana = document.getElementById('containerSemana');
 
-    if (tipo === 'mes') {
-        containerMes.style.display = 'block';
-        containerSemana.style.display = 'none';
-    } else if (tipo === 'semana') {
-        containerMes.style.display = 'none';
-        containerSemana.style.display = 'block';
-    } else {
-        containerMes.style.display = 'none';
-        containerSemana.style.display = 'none';
-    }
+    if (containerMes) containerMes.style.display = (tipo === 'mes') ? 'block' : 'none';
+    if (containerSemana) containerSemana.style.display = (tipo === 'semana') ? 'block' : 'none';
 }
 
 function parsearFechaCliente(fechaStr) {
@@ -707,11 +716,13 @@ function parsearFechaCliente(fechaStr) {
 }
 
 function ejecutarExportacionCSV() {
-    const tipo = document.getElementById('tipoFiltroExport').value;
+    const tipoSelect = document.getElementById('tipoFiltroExport');
+    const tipo = tipoSelect ? tipoSelect.value : 'todos';
     let datosFiltrados = [...clientesCache];
 
     if (tipo === 'mes') {
-        const valMes = document.getElementById('inputMesExport').value; 
+        const inputMes = document.getElementById('inputMesExport');
+        const valMes = inputMes ? inputMes.value : ''; 
         if (!valMes) {
             alert("Por favor selecciona un mes válido.");
             return;
@@ -723,7 +734,8 @@ function ejecutarExportacionCSV() {
             return fechaC.getFullYear() === anioSel && (fechaC.getMonth() + 1) === mesSel;
         });
     } else if (tipo === 'semana') {
-        const valSemana = document.getElementById('inputSemanaExport').value; 
+        const inputSemana = document.getElementById('inputSemanaExport');
+        const valSemana = inputSemana ? inputSemana.value : ''; 
         if (!valSemana) {
             alert("Por favor selecciona una semana válida.");
             return;
